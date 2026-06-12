@@ -6,6 +6,8 @@ function App() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [sessionId, setSessionId] =
+  useState<string>();
 
   const handleSend = async () => {
     if (!input.trim()) return;
@@ -23,7 +25,7 @@ function App() {
     setLoading(true);
 
     try {
-      const data = await sendMessage(currentInput);
+      const data = await sendMessage(currentInput, sessionId);
 
       const aiMessage: Message = {
         id: crypto.randomUUID(),
@@ -32,6 +34,7 @@ function App() {
       };
 
       setMessages((prev) => [...prev, aiMessage]);
+      setSessionId(data.sessionId);
     } catch (error) {
       console.error(error);
     } finally {

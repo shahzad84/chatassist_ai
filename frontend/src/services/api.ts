@@ -1,4 +1,4 @@
-export async function sendMessage(message:string){
+export async function sendMessage(message:string,sessionId?:string){
     const response=await fetch(
         "http://localhost:3001/chat/message",
         {
@@ -6,7 +6,7 @@ export async function sendMessage(message:string){
             headers:{
                 "Content-Type":"application/json",
             },
-            body:JSON.stringify({message}),
+            body:JSON.stringify({message, sessionId}),
         }
     );
     if(!response.ok){
