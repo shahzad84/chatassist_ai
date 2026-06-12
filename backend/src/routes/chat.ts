@@ -24,19 +24,27 @@ router.post("/message", async (req, res) => {
         });
         return;
     }
+    if (message.length > 2000) {
+      return res.status(400).json({
+        error: "Message exceeds maximum length",
+      });
+    }
 
     if (!sessionId) {
       sessionId = uuidv4();
-      createConversation(sessionId);
+      
     }
+    createConversation(sessionId);
 
+    const cleanedMessage = message.trim();
     saveMessage(
       sessionId,
       "user",
-      message
+      cleanedMessage
     );
+    const history = getMessages(sessionId);
 
-    const reply =(await generateReply(message)) ?? "Sorry, I couldn't generate a response.";
+    const reply =(await generateReply(history, cleanedMessage)) ?? "Sorry, I couldn't generate a response.";
 
     saveMessage(
       sessionId,
@@ -52,7 +60,8 @@ router.post("/message", async (req, res) => {
     console.error(error);
 
     res.status(500).json({
-      error: "AI service unavailable",
+    error:
+        "Our support assistant is temporarily unavailable. Please try again in a moment.",
     });
   }
 });

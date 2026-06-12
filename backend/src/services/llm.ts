@@ -19,7 +19,15 @@ Support:
 Answer clearly and concisely.
 `;
 
-export async function generateReply(message: string) {
+export async function generateReply(history: any[],message: string) {
+
+    const historyText = history
+  .slice(-20)
+  .map(
+    (msg) =>
+      `${msg.sender.toUpperCase()}: ${msg.text}`
+  )
+  .join("\n");
 
 const ai = new GoogleGenAI({
 apiKey: process.env.GEMINI_API_KEY!,
@@ -28,8 +36,14 @@ apiKey: process.env.GEMINI_API_KEY!,
 const prompt = `
 ${STORE_CONTEXT}
 
+Conversation History:
+
+${historyText}
+
 Customer:
 ${message}
+
+Support Agent:
 `;
 
 const response = await ai.models.generateContent({
