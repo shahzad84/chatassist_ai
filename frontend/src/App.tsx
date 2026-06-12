@@ -1,13 +1,29 @@
 import { useState } from "react";
 import { sendMessage } from "./services/api";
 import { Message } from "./types/chat";
+import { useEffect, useRef } from "react";
+import "./App.css";
 
 function App() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [sessionId, setSessionId] =
-  useState<string>();
+    useState<string | undefined>(
+      localStorage.getItem(
+        "sessionId"
+      ) || undefined
+    );
+  const [error, setError] =
+  useState("");
+
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({
+      behavior: "smooth",
+    });
+  }, [messages]);
 
   const handleSend = async () => {
     if (!input.trim()) return;
@@ -23,6 +39,7 @@ function App() {
     const currentInput = input;
     setInput("");
     setLoading(true);
+    setError("");
 
     try {
       const data = await sendMessage(currentInput, sessionId);
@@ -35,64 +52,77 @@ function App() {
 
       setMessages((prev) => [...prev, aiMessage]);
       setSessionId(data.sessionId);
+      localStorage.setItem(
+        "sessionId",
+        data.sessionId
+      );
     } catch (error) {
-      console.error(error);
+        setError(
+          "Failed to contact support agent."
+        );
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={{ padding: "20px" }}>
+    <div className="app">
       <h1>Spur AI Support Agent</h1>
 
-      <div
-        style={{
-          border: "1px solid gray",
-          height: "400px",
-          overflowY: "auto",
-          padding: "10px",
-          marginBottom: "10px",
-        }}
-      >
+      {error && (
+        <div className="error-banner">
+          {error}
+        </div>
+      )}
+
+      <div className="chat-container">
         {messages.map((msg) => (
           <div
             key={msg.id}
-            style={{
-              textAlign:
-                msg.sender === "user"
-                  ? "right"
-                  : "left",
-              marginBottom: "10px",
-            }}
+            className={`message-row ${
+              msg.sender === "user"
+                ? "user"
+                : "ai"
+            }`}
           >
-            <strong>
-              {msg.sender === "user"
-                ? "You"
-                : "AI"}
-            </strong>
-
-            <p>{msg.text}</p>
+            <div className="message-bubble">
+              {msg.text}
+            </div>
           </div>
         ))}
 
-        {loading && <p>AI is typing...</p>}
+        {loading && (
+          <div className="typing">
+            Support Agent is typing...
+          </div>
+        )}
+        <div ref={bottomRef} />
       </div>
 
-      <input
-        value={input}
-        onChange={(e) =>
-          setInput(e.target.value)
-        }
-        placeholder="Ask something..."
-      />
+      <div className="input-container">
+        <input
+          value={input}
+          onChange={(e) =>
+            setInput(e.target.value)
+          }
+          onKeyDown={(e) => {
+            if (
+              e.key === "Enter" &&
+              !loading
+            ) {
+              handleSend();
+            }
+          }}
+          placeholder="Ask something..."
+        />
 
-      <button
-        onClick={handleSend}
-        disabled={loading}
-      >
-        Send
-      </button>
+        <button
+          onClick={handleSend}
+          disabled={loading}
+        >
+          Send
+        </button>
+      </div>
     </div>
   );
 }
