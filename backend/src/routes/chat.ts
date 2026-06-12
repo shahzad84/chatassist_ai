@@ -1,34 +1,79 @@
-import { Router} from "express";
-import {generateReply} from "../services/llm.js";
+import { Router } from "express";
 import { v4 as uuidv4 } from "uuid";
+
+import { generateReply } from "../services/llm.js";
+import {
+  createConversation,
+  saveMessage,
+  getMessages,
+} from "../respository/messageRepository.js";
+
 const router = Router();
 
-router.post("/message", async (req,res)=>{
-    try{
+router.post("/message", async (req, res) => {
+  try {
+    const { message } = req.body;
+    let { sessionId } = req.body;
 
-        const {message} =req.body;
-        if (!message?.trim()){
-            return res.status(400).json({
-                error:"message is required",
-            });
-        }
-        let { sessionId } = req.body;
-
-        if (!sessionId) {
-        sessionId = uuidv4();
-        }
-
-        const reply=await generateReply(message);
-
-        res.json({
-            reply,
-            sessionId,
+    if (
+      typeof message !== "string" ||
+      !message.trim()
+    ) {
+        res.status(400).json({
+        error: "Message is required",
         });
-    }catch(error){
-        console.error(error);
-        res.status(500).json({
-            error:"AI service unavailable",
-        });
+        return;
     }
+
+    if (!sessionId) {
+      sessionId = uuidv4();
+      createConversation(sessionId);
+    }
+
+    saveMessage(
+      sessionId,
+      "user",
+      message
+    );
+
+    const reply =(await generateReply(message)) ?? "Sorry, I couldn't generate a response.";
+
+    saveMessage(
+      sessionId,
+      "ai",
+      reply
+    );
+
+    res.json({
+      reply,
+      sessionId,
+    });
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      error: "AI service unavailable",
+    });
+  }
 });
+
+router.get(
+  "/history/:sessionId",
+  (req, res) => {
+    try {
+      const messages = getMessages(
+        req.params.sessionId
+      );
+
+      res.json(messages);
+    } catch (error) {
+      console.error(error);
+
+      res.status(500).json({
+        error: "Failed to load history",
+      });
+    }
+  }
+);
+
 export default router;
