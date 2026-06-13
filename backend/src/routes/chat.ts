@@ -1,14 +1,11 @@
 import { Router } from "express";
 import { v4 as uuidv4 } from "uuid";
 import { LLMError } from "../services/llm.js";
-import { generateReply } from "../services/llm.js";
 import {
-  createConversation,
-  saveMessage,
   getMessages,
   conversationExists,
 } from "../respository/messageRepository.js";
-
+import { processChatMessage } from "../services/chat.js";
 import rateLimit from "express-rate-limit";
 
 const messageLimiter = rateLimit({
@@ -52,28 +49,13 @@ router.post("/message",messageLimiter, async (req, res) => {
       sessionId = uuidv4();
       
     }
-    createConversation(sessionId);
-
-    
-    saveMessage(
+    const result =
+      await processChatMessage(
       sessionId,
-      "user",
       cleanedMessage
     );
-    const history = getMessages(sessionId);
 
-    const reply =(await generateReply(history, cleanedMessage)) ?? "Sorry, I couldn't generate a response.";
-
-    saveMessage(
-      sessionId,
-      "ai",
-      reply
-    );
-
-    res.json({
-      reply,
-      sessionId,
-    });
+    res.json(result);
     } catch (error) {
     console.error(error);
 
