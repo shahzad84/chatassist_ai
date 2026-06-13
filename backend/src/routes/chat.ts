@@ -9,9 +9,23 @@ import {
   conversationExists,
 } from "../respository/messageRepository.js";
 
+import rateLimit from "express-rate-limit";
+
+const messageLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+  error:
+  "Too many messages sent. Please wait a few minutes before trying again.",
+  },
+});
+
+
 const router = Router();
 
-router.post("/message", async (req, res) => {
+router.post("/message",messageLimiter, async (req, res) => {
   try {
     const { message } = req.body;
     let { sessionId } = req.body;
@@ -76,7 +90,8 @@ router.post("/message", async (req, res) => {
     }
 
 
-});
+}
+);
 
 router.get("/history/:sessionId", (req, res) => {
   try {
