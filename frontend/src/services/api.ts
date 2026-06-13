@@ -1,6 +1,10 @@
+const API_URL =
+  import.meta.env.VITE_API_URL ||
+  "http://localhost:3001";
+
 export async function sendMessage(message:string,sessionId?:string){
     const response=await fetch(
-        "http://localhost:3001/chat/message",
+        `${API_URL}/chat/message`,
         {
             method:"POST",
             headers:{
@@ -9,19 +13,20 @@ export async function sendMessage(message:string,sessionId?:string){
             body:JSON.stringify({message, sessionId}),
         }
     );
+    const data = await response.json();
     if(!response.ok){
-        throw new Error("Failed to send message");
+        throw new Error(data.error || "Failed to send message");
     }
-    return response.json();
+    return data;
 }
 export async function getHistory(sessionId: string) {
   const response = await fetch(
-    `http://localhost:3001/chat/history/${sessionId}`
+    `${API_URL}/chat/history/${sessionId}`
   );
-
-  if (!response.ok) {
-    throw new Error("Failed to load history");
+  const data = await response.json();
+  if (!response.ok) {    
+    throw new Error(data.error || "Failed to load history");
   }
 
-  return response.json();
+  return data;
 }

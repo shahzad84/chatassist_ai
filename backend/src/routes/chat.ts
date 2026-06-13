@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { v4 as uuidv4 } from "uuid";
-
+import { LLMError } from "../services/llm.js";
 import { generateReply } from "../services/llm.js";
 import {
   createConversation,
@@ -59,14 +59,22 @@ router.post("/message", async (req, res) => {
       reply,
       sessionId,
     });
-  } catch (error) {
+    } catch (error) {
     console.error(error);
+
+    if (error instanceof LLMError) {
+    return res.status(503).json({
+    error: error.message,
+    });
+    }
 
     res.status(500).json({
     error:
-        "Our support assistant is temporarily unavailable. Please try again in a moment.",
+    "Our support assistant is temporarily unavailable. Please try again in a moment.",
     });
-  }
+    }
+
+
 });
 
 router.get("/history/:sessionId", (req, res) => {

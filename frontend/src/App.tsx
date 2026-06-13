@@ -90,9 +90,11 @@ function App() {
         data.sessionId
       );
     } catch (error) {
-        setError(
-          "Failed to contact support agent."
-        );
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Failed to contact support agent."
+      );
     } finally {
       setLoading(false);
     }
