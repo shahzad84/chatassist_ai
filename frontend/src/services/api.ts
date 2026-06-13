@@ -14,3 +14,14 @@ export async function sendMessage(message:string,sessionId?:string){
     }
     return response.json();
 }
+export async function getHistory(sessionId: string) {
+  const response = await fetch(
+    `http://localhost:3001/chat/history/${sessionId}`
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to load history");
+  }
+
+  return response.json();
+}

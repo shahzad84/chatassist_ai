@@ -24,7 +24,10 @@ router.post("/message", async (req, res) => {
         });
         return;
     }
-    if (message.length > 2000) {
+
+    const cleanedMessage = message.trim();
+    
+    if (cleanedMessage.length > 1000) {
       return res.status(400).json({
         error: "Message exceeds maximum length",
       });
@@ -36,7 +39,7 @@ router.post("/message", async (req, res) => {
     }
     createConversation(sessionId);
 
-    const cleanedMessage = message.trim();
+    
     saveMessage(
       sessionId,
       "user",
@@ -66,23 +69,20 @@ router.post("/message", async (req, res) => {
   }
 });
 
-router.get(
-  "/history/:sessionId",
-  (req, res) => {
-    try {
-      const messages = getMessages(
-        req.params.sessionId
-      );
+router.get("/history/:sessionId", (req, res) => {
+  try {
+    const { sessionId } = req.params;
 
-      res.json(messages);
-    } catch (error) {
-      console.error(error);
+    const messages = getMessages(sessionId);
 
-      res.status(500).json({
-        error: "Failed to load history",
-      });
-    }
+    res.json(messages);
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      error: "Failed to load chat history",
+    });
   }
-);
+});
 
 export default router;

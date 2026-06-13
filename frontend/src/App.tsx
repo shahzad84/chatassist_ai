@@ -1,7 +1,6 @@
-import { useState } from "react";
-import { sendMessage } from "./services/api";
+import { useState, useEffect, useRef } from "react";
+import { sendMessage, getHistory } from "./services/api";
 import { Message } from "./types/chat";
-import { useEffect, useRef } from "react";
 import "./App.css";
 
 function App() {
@@ -14,6 +13,8 @@ function App() {
         "sessionId"
       ) || undefined
     );
+  const [showLimitWarning, setShowLimitWarning] =
+  useState(false);
   const [error, setError] =
   useState("");
 
@@ -25,9 +26,41 @@ function App() {
     });
   }, [messages]);
 
+  useEffect(() => {
+    async function loadHistory() {
+      const savedSession =
+        localStorage.getItem("sessionId");
+
+      if (!savedSession) return;
+
+      try {
+        const history = await getHistory(savedSession);
+
+        const formatted = history.map((msg: Message) => ({
+          id: msg.id.toString(),
+          text: msg.text,
+          sender: msg.sender as "user" | "ai",
+        }));
+
+        setMessages(formatted);
+        setSessionId(savedSession);
+      } catch (error) {
+        console.error("Failed to load history", error);
+      }
+    }
+
+    loadHistory();
+  }, []);
+
   const handleSend = async () => {
     if (!input.trim()) return;
 
+    if (input.length > 1000) {
+      setError(
+        "Message exceeds maximum length"
+      );
+      return;
+    }
     const userMessage: Message = {
       id: Date.now().toString(),
       text: input,
@@ -100,15 +133,27 @@ function App() {
       </div>
 
       <div className="input-container">
-        <input
+        <input className={showLimitWarning ? "input-limit" : ""}
           value={input}
-          onChange={(e) =>
-            setInput(e.target.value)
-          }
+          maxLength={1000}
+          onChange={(e) => {
+            const value = e.target.value;
+
+            if (value.length >= 1000) {
+              setShowLimitWarning(true);
+
+              setTimeout(() => {
+                setShowLimitWarning(false);
+              }, 2500);
+            }
+
+            setInput(value);
+          }}
           onKeyDown={(e) => {
             if (
               e.key === "Enter" &&
-              !loading
+              !loading &&
+              input.trim()
             ) {
               handleSend();
             }
@@ -118,11 +163,12 @@ function App() {
 
         <button
           onClick={handleSend}
-          disabled={loading}
+          disabled={loading || !input.trim()}
         >
           Send
         </button>
       </div>
+
     </div>
   );
 }
