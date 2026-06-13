@@ -42,3 +42,18 @@ export function getMessages(
     )
     .all(sessionId);
 }
+
+export function conversationExists(
+sessionId: string
+) {
+const result = db
+.prepare(
+`       SELECT id
+      FROM conversations
+      WHERE id = ?
+    `
+)
+.get(sessionId);
+
+return !!result;
+}

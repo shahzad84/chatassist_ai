@@ -15,7 +15,15 @@ app.use("/chat",chatRoutes);
 app.get("/", (req, res)=>{
     res.send("backend running");
 });
-const PORT =3001;
+const PORT = Number(process.env.PORT) || 5000;
+
+app.get("/health", (req, res) => {
+res.status(200).json({
+status: "ok",
+timestamp: new Date().toISOString(),
+});
+});
+
 
 app.listen(PORT,()=>{
     console.log(`server running on ${PORT}`);

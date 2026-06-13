@@ -6,6 +6,7 @@ import {
   createConversation,
   saveMessage,
   getMessages,
+  conversationExists,
 } from "../respository/messageRepository.js";
 
 const router = Router();
@@ -79,17 +80,25 @@ router.post("/message", async (req, res) => {
 
 router.get("/history/:sessionId", (req, res) => {
   try {
-    const { sessionId } = req.params;
+  const { sessionId } = req.params;
 
-    const messages = getMessages(sessionId);
-
-    res.json(messages);
-  } catch (error) {
-    console.error(error);
-
-    res.status(500).json({
-      error: "Failed to load chat history",
+  if (!conversationExists(sessionId)) {
+    return res.status(404).json({
+      error: "Conversation not found",
     });
+  }
+
+  const messages = getMessages(sessionId);
+
+  res.json(messages);
+
+  } catch (error) {
+  console.error(error);
+
+  res.status(500).json({
+    error: "Failed to load chat history",
+  });
+
   }
 });
 
