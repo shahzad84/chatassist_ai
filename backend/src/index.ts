@@ -5,7 +5,11 @@ import chatRoutes from "./routes/chat.js";
 
 
 dotenv.config();
-
+if (!process.env.GEMINI_API_KEY) {
+  throw new Error(
+    "GEMINI_API_KEY is missing"
+  );
+}
 const app=express();
 
 app.use(cors());

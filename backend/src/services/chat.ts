@@ -25,10 +25,6 @@ export async function processChatMessage(sessionId: string, message: string) {
       sessionId,
     };
   } catch (error) {
-    const fallback = "Our support assistant is temporarily unavailable.";
-
-    saveMessage(sessionId, "ai", fallback);
-
     throw error;
   }
 }

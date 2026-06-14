@@ -4,9 +4,9 @@ A simple AI-powered customer support chat application built with React, Express,
 
 ## Demo
 
-Frontend: [Add URL]
+Frontend: [[URL](https://chatasai.netlify.app/)]
 
-Backend: [Add URL]
+Backend: [[URL](https://chatassist-ai.onrender.com/)]
 
 ## Screenshots
 
@@ -125,6 +125,20 @@ Conversation history is included in prompts so responses remain contextual.
 - Rate limiting
 - Error handling for LLM failures
 - Health check endpoint
+
+## Important Render Deployment Note
+
+This project uses a local SQLite database:
+
+```ts
+new Database("chat.db")
+```
+
+When deployed on Render's free tier, the application may restart after periods of inactivity. Since the SQLite database file is stored on the instance filesystem, chat history may be lost when the service restarts.
+
+For the purposes of this take-home assignment, this tradeoff is acceptable and keeps the deployment simple.
+
+In a production environment, the application should use a persistent database such as PostgreSQL, MySQL, or a managed SQLite solution with persistent storage.
 
 ## Tradeoffs
 

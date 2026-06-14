@@ -37,7 +37,7 @@ export function getMessages(
       SELECT *
       FROM messages
       WHERE conversation_id = ?
-      ORDER BY created_at ASC
+      ORDER BY id ASC
     `
     )
     .all(sessionId);
@@ -48,7 +48,7 @@ sessionId: string
 ) {
 const result = db
 .prepare(
-`       SELECT id
+`     SELECT id
       FROM conversations
       WHERE id = ?
     `

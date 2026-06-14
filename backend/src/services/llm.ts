@@ -1,5 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
-
+const ai = new GoogleGenAI({
+apiKey: process.env.GEMINI_API_KEY!,
+});
 const STORE_CONTEXT = `
 You are a helpful support agent.
 
@@ -25,13 +27,23 @@ export class LLMError extends Error {
     this.name = "LLMError";
   }
 }
+function withTimeout<T>(
+  promise: Promise<T>,
+  ms: number
+): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) =>
+      setTimeout(
+        () => reject(new Error("timeout")),
+        ms
+      )
+    ),
+  ]);
+}
 
 export async function generateReply(history: any[],message: string) {
   try {
-  const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY!,
-  });
-
   const historyText = history
   .slice(-20)
   .map(
@@ -54,10 +66,13 @@ ${message}
 Support Agent:
 `;
 
-const response = await ai.models.generateContent({
-model: "gemini-2.5-flash",
-contents: prompt,
-});
+const response = await withTimeout(
+  ai.models.generateContent({
+    model: "gemini-2.5-flash",
+    contents: prompt,
+  }),
+  15000
+);
 
 return (
   response.text ||

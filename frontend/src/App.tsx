@@ -45,7 +45,14 @@ function App() {
         setMessages(formatted);
         setSessionId(savedSession);
       } catch (error) {
-        console.error("Failed to load history", error);
+        console.error(
+          "Failed to load history",
+          error
+        );
+
+        setError(
+          "Unable to restore previous conversation."
+        );
       }
     }
 
